@@ -137,7 +137,16 @@ def init_db():
     conn.close()
 
 
+def _safe_text(value, limit=200):
+    if value is None:
+        return ""
+    return str(value)[:limit]
+
 def log_diagnosis(vehicle=None, symptom=None, result=None, notes=None):
+    vehicle = _safe_text(vehicle, 200)
+    symptom = _safe_text(symptom, 200)
+    result = _safe_text(result, 200)
+    notes = _safe_text(notes, 500)
     conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
     cur.execute("INSERT INTO diagnosis_log (timestamp, vehicle, symptom, result, notes) VALUES (?, ?, ?, ?, ?)",
@@ -147,6 +156,12 @@ def log_diagnosis(vehicle=None, symptom=None, result=None, notes=None):
 
 
 def add_service(date_str, mileage, item, garage="", cost="", notes=""):
+    date_str = _safe_text(date_str, 20)
+    mileage = _safe_text(mileage, 20)
+    item = _safe_text(item, 120)
+    garage = _safe_text(garage, 120)
+    cost = _safe_text(cost, 40)
+    notes = _safe_text(notes, 500)
     conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
     cur.execute("INSERT INTO service_log (date, mileage, item, garage, cost, notes) VALUES (?, ?, ?, ?, ?, ?)",
@@ -155,10 +170,12 @@ def add_service(date_str, mileage, item, garage="", cost="", notes=""):
     conn.close()
 
 
-def delete_service(service_id):
+def add_mot_tax(expiry_type, expiry_date):
+    expiry_type = _safe_text(expiry_type, 20)
+    expiry_date = _safe_text(expiry_date, 20)
     conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
-    cur.execute("DELETE FROM service_log WHERE id = ?", (service_id,))
+    cur.execute("INSERT INTO mot_tax (type, expiry) VALUES (?, ?)", (expiry_type, expiry_date))
     conn.commit()
     conn.close()
 
@@ -173,6 +190,8 @@ def get_service_log():
 
 
 def add_mot_tax(expiry_type, expiry_date):
+    expiry_type = _safe_text(expiry_type, 20)
+    expiry_date = _safe_text(expiry_date, 20)
     conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
     cur.execute("INSERT INTO mot_tax (type, expiry) VALUES (?, ?)", (expiry_type, expiry_date))
@@ -477,6 +496,12 @@ class CarDiagnosisApp:
         except Exception as e:
             self.obd_status.config(text="Status: connection failed")
             messagebox.showerror("OBD2 Error", str(e))
+        finally:
+            if hasattr(self, "obd_serial") and getattr(self, "obd_serial", None) and not self.obd_serial.is_open:
+                try:
+                    self.obd_serial.close()
+                except Exception:
+                    pass
 
     def _read_live_codes(self):
         if not hasattr(self, "obd_serial") or not self.obd_serial or not self.obd_serial.is_open:
