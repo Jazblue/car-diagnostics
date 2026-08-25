@@ -1,0 +1,102 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Car Diagnosis — Security Audit Report</title>
+<style>
+  body { font-family: Segoe UI, Tahoma, Arial, sans-serif; background: #f7f9fb; color:#1f2937; margin: 0; padding: 32px; }
+  .wrap { max-width: 960px; margin: 0 auto; }
+  h1 { font-size: 26px; margin-bottom: 4px; }
+  .meta { color:#6b7280; margin-bottom: 18px; }
+  .card { background:#fff; border:1px solid #e5e7eb; border-radius: 12px; padding: 16px; margin-bottom: 14px; }
+  .title { font-weight:700; font-size: 16px; margin-bottom: 6px; }
+  .ok { color:#15803d; font-weight:700; }
+  .warn { color:#b45309; font-weight:700; }
+  .bad { color:#b91c1c; font-weight:700; }
+  ul { margin: 6px 0 0 18px; padding: 0; }
+  li { margin-bottom: 6px; }
+  .small { color:#6b7280; font-size: 13px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Car Diagnosis — Security Audit Report</h1>
+  <div class="meta">Date: 25 Aug 2026 &nbsp;•&nbsp; Scope: desktop app + web app</div>
+
+  <div class="card">
+    <div class="title">Summary</div>
+    <div>Overall risk: <span class="ok">Low</span></div>
+    <div class="small">The apps are mostly local-first, use parameterized DB access, and do not send sensitive data to remote services.</div>
+  </div>
+
+  <div class="card">
+    <div class="title">1. Injection</div>
+    <div>Status: <span class="ok">OK</span></div>
+    <ul>
+      <li>SQLite queries use parameterized statements with <code>? </code>placeholders.</li>
+      <li>No raw string concatenation for SQL.</li>
+      <li>No shell command execution from user input.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <div class="title">2. Input Handling / Validation</div>
+    <div>Status: <span class="ok">OK — hardened</span></div>
+    <ul>
+      <li>Added <code>_safe_text()</code> truncation for all persisted fields.</li>
+      <li>Web inputs use maxLength constraints.</li>
+      <li>Dates validated before MOT/Tax save.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <div class="title">3. Serial / OBD2 Adapter</div>
+    <div>Status: <span class="ok">OK — hardened</span></div>
+    <ul>
+      <li>Connection failures handled with try/except.</li>
+      <li>Serial port closed safely on failure.</li>
+      <li>No remote execution path.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <div class="title">4. Data Storage</div>
+    <div>Status: <span class="warn">Acceptable for offline use</span></div>
+    <ul>
+      <li>Local SQLite DB is unencrypted.</li>
+      <li>Local JSON config is unencrypted.</li>
+      <li>Risk is low because the app is designed for offline single-user use.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <div class="title">5. Web App Exposure</div>
+    <div>Status: <span class="ok">OK</span></div>
+    <ul>
+      <li>Pure client-side React app.</li>
+      <li>No backend API, no auth tokens, no third-party tracking.</li>
+      <li>Data stays in browser localStorage.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <div class="title">6. Dependencies</div>
+    <div>Status: <span class="ok">OK</span></div>
+    <ul>
+      <li>Desktop: only <code>pyserial</code> added; standard library otherwise.</li>
+      <li>Web: standard Next.js/React stack.</li>
+      <li>No obvious dependency risk from app logic.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <div class="title">7. Recommendations</div>
+    <ul>
+      <li>Keep the app offline-only unless the user explicitly wants cloud sync.</li>
+      <li>Avoid adding authentication unless needed.</li>
+      <li>If shared PCs are used, consider OS-level folder permissions for the DB/config files.</li>
+    </ul>
+  </div>
+</div>
+</body>
+</html>
