@@ -90,6 +90,345 @@ OBD2_CODES = {
 
 ALL_SYMPTOMS = sorted(set(s for d in OBD2_CODES.values() for s in d["symptoms"]))
 
+VEHICLE_PROFILES = {
+    "ford focus": {
+        "aliases": ["focus"],
+        "years": range(2005, 2026),
+        "engines": ["1.0 ecoboost", "1.5 ecoboost", "1.6 duratec ti-vct", "2.0 duratec", "1.6 tdci", "2.0 tdci"],
+        "common_codes": ["P0300", "P0301", "P0302", "P0303", "P0304", "P0171", "P0420", "P0401", "P0505", "P0115", "P0340", "P0351"],
+        "common_symptoms": ["misfire", "rough idle", "check engine light", "poor fuel economy", "loss of power", "vibration", "hard start"],
+        "notes": "1.0 Ecoboost: watch for misfires on cylinder 1/2/3, coolant loss, and PCV hose failures. 1.6 TDCi: timing belt and EGR issues common. 2.0: standard Ford powertrain codes."
+    },
+    "ford fiesta": {
+        "aliases": ["fiesta"],
+        "years": range(2008, 2026),
+        "engines": ["1.0 ecoboost", "1.25 duratec", "1.4 duratec", "1.5 tdci", "1.6 tdci"],
+        "common_codes": ["P0300", "P0301", "P0302", "P0303", "P0171", "P0420", "P0401", "P0505", "P0115", "P0351"],
+        "common_symptoms": ["misfire", "rough idle", "check engine light", "poor fuel economy", "loss of power", "vibration"],
+        "notes": "1.0 Ecoboost: common misfires, especially cold. Check spark plugs, coils, and PCV hose. TDCi: EGR clogging."
+    },
+    "vauxhall corsa": {
+        "aliases": ["corsa"],
+        "years": range(2006, 2026),
+        "engines": ["1.0 turbo", "1.2", "1.4", "1.3 cdti", "1.5 diesel", "1.6"],
+        "common_codes": ["P0300", "P0301", "P0302", "P0303", "P0304", "P0171", "P0420", "P0401", "P0115", "P0135", "P0440"],
+        "common_symptoms": ["misfire", "rough idle", "check engine light", "poor fuel economy", "hard start", "emissions fail"],
+        "notes": "1.0 Turbo: coil and plug issues common. 1.3 CDTI: EGR and swirl flap failures. Watch for MAF sensor drift."
+    },
+    "vauxhall astra": {
+        "aliases": ["astra"],
+        "years": range(2009, 2026),
+        "engines": ["1.0 turbo", "1.4 turbo", "1.6", "1.6 cdti", "2.0 cdti"],
+        "common_codes": ["P0300", "P0301", "P0302", "P0303", "P0304", "P0171", "P0420", "P0401", "P0505", "P0115", "P0135"],
+        "common_symptoms": ["misfire", "rough idle", "check engine light", "poor fuel economy", "loss of power", "hard start"],
+        "notes": "1.0/1.4 Turbo: coil packs fail regularly. 1.6 CDTI: EGR and DPF issues. 2.0 CDTI: timing belt and turbo whistling."
+    },
+    "volkswagen golf": {
+        "aliases": ["golf"],
+        "years": range(2008, 2026),
+        "engines": ["1.0 tsi", "1.2 tsi", "1.4 tsi", "1.5 tsi", "1.6 tdi", "2.0 tdi"],
+        "common_codes": ["P0300", "P0301", "P0302", "P0303", "P0171", "P0299", "P0401", "P0420", "P0115", "P0135", "P0440"],
+        "common_symptoms": ["misfire", "rough idle", "check engine light", "poor fuel economy", "loss of power", "turbo whine", "hard start"],
+        "notes": "1.2/1.4 TSI: high-pressure fuel pump and cam chain tensioner issues. 1.6/2.0 TDI: timing belt, EGR, DPF, and swirl flaps. P0299 turbo underboost common on early 1.4 TSI."
+    },
+    "volkswagen polo": {
+        "aliases": ["polo"],
+        "years": range(2009, 2026),
+        "engines": ["1.0 mpi", "1.2 tsi", "1.4 tdi", "1.6 tdi"],
+        "common_codes": ["P0300", "P0301", "P0302", "P0303", "P0171", "P0420", "P0401", "P0115", "P0135"],
+        "common_symptoms": ["misfire", "rough idle", "check engine light", "poor fuel economy", "loss of power", "hard start"],
+        "notes": "1.2 TSI: coil and plug issues. 1.4/1.6 TDI: EGR clogging and timing belt."
+    },
+    "bmw 3 series": {
+        "aliases": ["3 series", "3-series", "320", "325", "330", "335", "318"],
+        "years": range(2005, 2026),
+        "engines": ["1.6", "2.0", "3.0", "3.0 twin-power turbo", "2.0 diesel", "3.0 diesel"],
+        "common_codes": ["P0300", "P0301", "P0302", "P0303", "P0304", "P0305", "P0306", "P0171", "P0299", "P0010", "P0016", "P0341", "P0351", "P0352"],
+        "common_symptoms": ["misfire", "rough idle", "check engine light", "loss of power", "vibration", "hard start", "timing chain rattle"],
+        "notes": "N47 Diesel: timing chain and swirl flaps. N55/B48 Petrol: coil packs, spark plugs, and VANOS solenoid issues. P0016/P0010 cam correlation common."
+    },
+    "bmw 1 series": {
+        "aliases": ["1 series", "1-series", "116", "118", "120", "123", "125", "130", "135", "116d", "118d", "120d"],
+        "years": range(2004, 2026),
+        "engines": ["1.6", "2.0", "3.0", "2.0 diesel", "3.0 diesel"],
+        "common_codes": ["P0300", "P0301", "P0302", "P0303", "P0171", "P0299", "P0010", "P0016", "P0341", "P0351", "P0352"],
+        "common_symptoms": ["misfire", "rough idle", "check engine light", "loss of power", "vibration", "hard start"],
+        "notes": "N47 Diesel: timing belt/chain and EGR. N55/B48: coils, plugs, VANOS, and turbo wastegate rattle."
+    },
+    "mercedes a-class": {
+        "aliases": ["a class", "a-class", "a180", "a200", "a220", "a250"],
+        "years": range(2013, 2026),
+        "engines": ["1.3", "1.5 d", "2.0 d", "2.0"],
+        "common_codes": ["P0300", "P0301", "P0302", "P0303", "P0171", "P0401", "P0420", "P0115", "P0135"],
+        "common_symptoms": ["misfire", "rough idle", "check engine light", "poor fuel economy", "loss of power"],
+        "notes": "M270/M274 petrol: ignition coil and spark plug failures common. OM651 Diesel: EGR and DPF."
+    },
+    "mercedes c-class": {
+        "aliases": ["c class", "c-class", "c180", "c200", "c220", "c250", "c300"],
+        "years": range(2007, 2026),
+        "engines": ["1.5", "2.0", "3.0", "2.1 d", "2.2 d", "2.0 d"],
+        "common_codes": ["P0300", "P0301", "P0302", "P0303", "P0304", "P0305", "P0306", "P0171", "P0401", "P0420", "P0010", "P0016"],
+        "common_symptoms": ["misfire", "rough idle", "check engine light", "loss of power", "vibration", "hard start"],
+        "notes": "M274 petrol: coils and plugs. OM651/OM642 Diesel: EGR, DPF, and timing chain. Multiple cylinder misfires often point to coils or injectors."
+    },
+    "audi a3": {
+        "aliases": ["a3"],
+        "years": range(2008, 2026),
+        "engines": ["1.0 tfsi", "1.4 tfsi", "1.5 tfsi", "1.6 tdi", "2.0 tdi"],
+        "common_codes": ["P0300", "P0301", "P0302", "P0303", "P0171", "P0299", "P0401", "P0420", "P0115", "P0135", "P0440"],
+        "common_symptoms": ["misfire", "rough idle", "check engine light", "poor fuel economy", "loss of power", "turbo whine"],
+        "notes": "1.4 TFSI: high-pressure fuel pump and timing chain tensioner. 1.6/2.0 TDI: EGR, DPF, and swirl flaps. P0299 turbo underboost common."
+    },
+    "audi a4": {
+        "aliases": ["a4"],
+        "years": range(2008, 2026),
+        "engines": ["1.4 tfsi", "1.8 tfsi", "2.0 tfsi", "2.0 tdi", "3.0 tdi"],
+        "common_codes": ["P0300", "P0301", "P0302", "P0303", "P0304", "P0171", "P0299", "P0401", "P0420", "P0010", "P0016"],
+        "common_symptoms": ["misfire", "rough idle", "check engine light", "poor fuel economy", "loss of power", "turbo whine"],
+        "notes": "2.0 TFSI: timing chain tensioner and oil consumption. 2.0 TDI: EGR, DPF, and turbo issues. P0016 cam correlation possible on early 2.0 TDI."
+    },
+    "nissan qashqai": {
+        "aliases": ["qashqai", "qashqai+2"],
+        "years": range(2007, 2026),
+        "engines": ["1.2 dig-t", "1.5 dci", "1.6 dci", "2.0"],
+        "common_codes": ["P0300", "P0301", "P0302", "P0303", "P0171", "P0420", "P0401", "P0115", "P0335", "P0340"],
+        "common_symptoms": ["misfire", "rough idle", "check engine light", "poor fuel economy", "loss of power", "hard start"],
+        "notes": "1.2 DIG-T: known timing chain and turbocharger oil feed pipe issues. 1.5/1.6 dCi: EGR and DPF. P0300 on 1.2 often means timing chain stretch."
+    },
+    "nissan juke": {
+        "aliases": ["juke"],
+        "years": range(2010, 2026),
+        "engines": ["1.0 dig-t", "1.2 dig-t", "1.5 dci", "1.6"],
+        "common_codes": ["P0300", "P0301", "P0302", "P0303", "P0171", "P0420", "P0401", "P0299", "P0335", "P0340"],
+        "common_symptoms": ["misfire", "rough idle", "check engine light", "poor fuel economy", "loss of power", "turbo whine", "hard start"],
+        "notes": "1.0/1.2 DIG-T: timing chain, turbo oil feed, and coil packs. 1.5 dCi: EGR and DPF. CVT models can show P0741."
+    },
+    "toyota yaris": {
+        "aliases": ["yaris"],
+        "years": range(2005, 2026),
+        "engines": ["1.0 vvt-i", "1.3 vvt-i", "1.5 vvt-i", "1.4 d-4d", "1.5 d-4d"],
+        "common_codes": ["P0300", "P0301", "P0302", "P0303", "P0171", "P0420", "P0401", "P0115", "P0440"],
+        "common_symptoms": ["misfire", "rough idle", "check engine light", "poor fuel economy", "hard start"],
+        "notes": "1.0/1.3 VVT-i: coils and plugs common. 1.4/1.5 D-4D: EGR and DPF. Generally reliable; avoid misfire codes caused by bad fuel."
+    },
+    "toyota corolla": {
+        "aliases": ["corolla"],
+        "years": range(2007, 2026),
+        "engines": ["1.2 t", "1.8", "2.0", "1.4 d-4d", "1.8 d-4d", "2.0 d-4d"],
+        "common_codes": ["P0300", "P0301", "P0302", "P0303", "P0171", "P0420", "P0401", "P0115", "P0440"],
+        "common_symptoms": ["misfire", "rough idle", "check engine light", "poor fuel economy", "hard start", "failed emissions"],
+        "notes": "1.2 Turbo: coils and plugs. 1.8 D-4D: EGR and DPF. Very reliable; when misfires appear, inspect plugs/coils first."
+    },
+    "honda civic": {
+        "aliases": ["civic"],
+        "years": range(2006, 2026),
+        "engines": ["1.0 t", "1.5 t", "1.6 i-dtec", "2.0 i-vtec"],
+        "common_codes": ["P0300", "P0301", "P0302", "P0303", "P0171", "P0420", "P0401", "P0115", "P0135"],
+        "common_symptoms": ["misfire", "rough idle", "check engine light", "poor fuel economy", "loss of power"],
+        "notes": "1.0 Turbo: spark plugs and coils. 1.6 i-DTEC: DPF and EGR. 2.0 i-VTEC: general reliability; if misfire, check coils and plugs."
+    },
+    "honda jazz": {
+        "aliases": ["jazz"],
+        "years": range(2008, 2026),
+        "engines": ["1.3 i-vtec", "1.5 i-vtec", "1.3 i-dtec"],
+        "common_codes": ["P0300", "P0301", "P0302", "P0171", "P0420", "P0401", "P0115"],
+        "common_symptoms": ["misfire", "rough idle", "check engine light", "poor fuel economy", "hard start"],
+        "notes": "Very reliable. Misfires usually mean worn plugs or coils. 1.3 i-DTEC: EGR and DPF possible."
+    },
+    "skoda octavia": {
+        "aliases": ["octavia"],
+        "years": range(2009, 2026),
+        "engines": ["1.0 tsi", "1.2 tsi", "1.4 tsi", "1.5 tsi", "1.6 tdi", "2.0 tdi"],
+        "common_codes": ["P0300", "P0301", "P0302", "P0303", "P0171", "P0299", "P0401", "P0420", "P0115", "P0135", "P0440"],
+        "common_symptoms": ["misfire", "rough idle", "check engine light", "poor fuel economy", "loss of power", "turbo whine", "emissions fail"],
+        "notes": "1.0/1.2/1.4 TSI: cam chain tensioner and high-pressure fuel pump. 1.6/2.0 TDI: EGR, DPF, swirl flaps, and timing belt."
+    },
+    "skoda fabia": {
+        "aliases": ["fabia"],
+        "years": range(2007, 2026),
+        "engines": ["1.0 mpi", "1.0 tsi", "1.2 tsi", "1.4 tdi", "1.6 tdi"],
+        "common_codes": ["P0300", "P0301", "P0302", "P0303", "P0171", "P0420", "P0401", "P0115", "P0135"],
+        "common_symptoms": ["misfire", "rough idle", "check engine light", "poor fuel economy", "loss of power"],
+        "notes": "1.0 TSI: coil packs. 1.2 TSI: timing chain tensioner. 1.4/1.6 TDI: EGR and DPF."
+    },
+    "seat leon": {
+        "aliases": ["leon"],
+        "years": range(2009, 2026),
+        "engines": ["1.0 tsi", "1.2 tsi", "1.4 tsi", "1.5 tsi", "1.6 tdi", "2.0 tdi"],
+        "common_codes": ["P0300", "P0301", "P0302", "P0303", "P0171", "P0299", "P0401", "P0420", "P0115", "P0135"],
+        "common_symptoms": ["misfire", "rough idle", "check engine light", "poor fuel economy", "loss of power", "turbo whine"],
+        "notes": "Shared VAG underpinnings. 1.2/1.4 TSI: cam chain and HPFP. 1.6/2.0 TDI: EGR, DPF, swirl flaps, timing belt."
+    },
+    "seat ibiza": {
+        "aliases": ["ibiza"],
+        "years": range(2008, 2026),
+        "engines": ["1.0 mpi", "1.0 tsi", "1.2 tsi", "1.4 tdi", "1.6 tdi"],
+        "common_codes": ["P0300", "P0301", "P0302", "P0303", "P0171", "P0420", "P0401", "P0115"],
+        "common_symptoms": ["misfire", "rough idle", "check engine light", "poor fuel economy", "loss of power"],
+        "notes": "1.0 TSI: coil and plug failures. 1.4 TDI: EGR and turbo hose leaks."
+    },
+    "peugeot 308": {
+        "aliases": ["308"],
+        "years": range(2007, 2026),
+        "engines": ["1.2 puretech", "1.5 bluehdi", "1.6 hdi", "2.0 hdi"],
+        "common_codes": ["P0300", "P0301", "P0302", "P0303", "P0171", "P0401", "P0420", "P0115", "P0135", "P0505"],
+        "common_symptoms": ["misfire", "rough idle", "check engine light", "poor fuel economy", "loss of power", "hard start"],
+        "notes": "1.2 PureTech: timing belt/chain and water pump failures. 1.5 BlueHDi: EGR and DPF. 1.6 HDi: HPFP wear."
+    },
+    "peugeot 3008": {
+        "aliases": ["3008"],
+        "years": range(2009, 2026),
+        "engines": ["1.2 puretech", "1.5 bluehdi", "1.6 hdi", "2.0 hdi"],
+        "common_codes": ["P0300", "P0301", "P0302", "P0303", "P0171", "P0401", "P0420", "P0299", "P0115"],
+        "common_symptoms": ["misfire", "rough idle", "check engine light", "poor fuel economy", "loss of power", "turbo whine"],
+        "notes": "1.2 PureTech: timing belt/chain and water pump. 1.5/1.6 BlueHDi: EGR, DPF, and AdBlue system issues."
+    },
+    "renault clio": {
+        "aliases": ["clio"],
+        "years": range(2005, 2026),
+        "engines": ["0.9 tce", "1.0 tce", "1.2", "1.3 dci", "1.5 dci"],
+        "common_codes": ["P0300", "P0301", "P0302", "P0303", "P0171", "P0420", "P0401", "P0115", "P0505"],
+        "common_symptoms": ["misfire", "rough idle", "check engine light", "poor fuel economy", "loss of power"],
+        "notes": "0.9 TCe: timing belt failures well documented. 1.2/1.3/1.5 dCi: EGR and DPF. Coil packs fail regularly on TCe engines."
+    },
+    "renault captur": {
+        "aliases": ["captur"],
+        "years": range(2013, 2026),
+        "engines": ["0.9 tce", "1.0 tce", "1.3 dci", "1.5 dci"],
+        "common_codes": ["P0300", "P0301", "P0302", "P0303", "P0171", "P0420", "P0401", "P0115"],
+        "common_symptoms": ["misfire", "rough idle", "check engine light", "poor fuel economy", "loss of power"],
+        "notes": "0.9/1.0 TCe: timing belt and coil packs. 1.3/1.5 dCi: EGR and DPF."
+    },
+    "citroen c3": {
+        "aliases": ["c3"],
+        "years": range(2009, 2026),
+        "engines": ["1.0 puretech", "1.2 puretech", "1.5 bluehdi", "1.6 hdi"],
+        "common_codes": ["P0300", "P0301", "P0302", "P0303", "P0171", "P0401", "P0420", "P0115", "P0505"],
+        "common_symptoms": ["misfire", "rough idle", "check engine light", "poor fuel economy", "loss of power"],
+        "notes": "1.2 PureTech: timing belt/chain and water pump. 1.5 BlueHDi: EGR and DPF."
+    },
+    "citroen c4": {
+        "aliases": ["c4", "c4 cactus"],
+        "years": range(2008, 2026),
+        "engines": ["1.2 puretech", "1.5 bluehdi", "1.6 hdi", "2.0 hdi"],
+        "common_codes": ["P0300", "P0301", "P0302", "P0303", "P0171", "P0401", "P0420", "P0299", "P0115"],
+        "common_symptoms": ["misfire", "rough idle", "check engine light", "poor fuel economy", "loss of power", "turbo whine"],
+        "notes": "1.2 PureTech: timing chain/belt and water pump. 1.5/1.6 BlueHDi: EGR, DPF, and turbo."
+    },
+    "fiat 500": {
+        "aliases": ["500"],
+        "years": range(2007, 2026),
+        "engines": ["0.9 twinair", "1.0 firefly", "1.2 fire", "1.3 multijet", "1.6 multijet"],
+        "common_codes": ["P0300", "P0301", "P0302", "P0303", "P0171", "P0401", "P0420", "P0115", "P0505"],
+        "common_symptoms": ["misfire", "rough idle", "check engine light", "poor fuel economy", "loss of power", "hard start"],
+        "notes": "0.9 TwinAir: timing belt and oil consumption. 1.2 Fire: coils and plugs. 1.3/1.6 MultiJet: EGR and DPF."
+    },
+    "fiat panda": {
+        "aliases": ["panda"],
+        "years": range(2003, 2026),
+        "engines": ["0.9 twinair", "1.0", "1.2 fire", "1.3 multijet"],
+        "common_codes": ["P0300", "P0301", "P0302", "P0171", "P0420", "P0401", "P0115"],
+        "common_symptoms": ["misfire", "rough idle", "check engine light", "poor fuel economy", "hard start"],
+        "notes": "0.9 TwinAir: timing belt. 1.2 Fire: coils and plugs. 1.3 MultiJet: EGR."
+    },
+    "mini cooper": {
+        "aliases": ["mini", "cooper", "cooper s", "countryman", "clubman"],
+        "years": range(2006, 2026),
+        "engines": ["1.5", "2.0", "1.5d", "2.0d"],
+        "common_codes": ["P0300", "P0301", "P0302", "P0303", "P0299", "P0401", "P0420", "P0010", "P0016", "P0115", "P0341"],
+        "common_symptoms": ["misfire", "rough idle", "check engine light", "loss of power", "turbo whine", "hard start"],
+        "notes": "Prince engine: timing chain, HPFP, and oil pump issues. Cooper S: turbo and intercooler. N47-derived diesels: EGR and DPF."
+    },
+    "hyundai i20": {
+        "aliases": ["i20"],
+        "years": range(2008, 2026),
+        "engines": ["1.0 t-gdi", "1.2 mpi", "1.4 mpi", "1.4 crdi", "1.5 crdi"],
+        "common_codes": ["P0300", "P0301", "P0302", "P0303", "P0171", "P0401", "P0420", "P0115", "P0505"],
+        "common_symptoms": ["misfire", "rough idle", "check engine light", "poor fuel economy", "loss of power"],
+        "notes": "1.0 T-GDI: high-pressure fuel pump and timing chain. 1.4 CRDi: EGR and DPF."
+    },
+    "hyundai i30": {
+        "aliases": ["i30"],
+        "years": range(2007, 2026),
+        "engines": ["1.0 t-gdi", "1.4 mpi", "1.6 gdi", "1.6 crdi", "2.0"],
+        "common_codes": ["P0300", "P0301", "P0302", "P0303", "P0171", "P0401", "P0420", "P0115", "P0299"],
+        "common_symptoms": ["misfire", "rough idle", "check engine light", "poor fuel economy", "loss of power", "turbo whine"],
+        "notes": "1.0/1.6 T-GDI: HPFP and timing chain. 1.6 CRDi: EGR and DPF."
+    },
+    "kia ceed": {
+        "aliases": ["ceed"],
+        "years": range(2006, 2026),
+        "engines": ["1.0 t-gdi", "1.4 mpi", "1.6 gdi", "1.6 crdi"],
+        "common_codes": ["P0300", "P0301", "P0302", "P0303", "P0171", "P0401", "P0420", "P0115"],
+        "common_symptoms": ["misfire", "rough idle", "check engine light", "poor fuel economy", "loss of power"],
+        "notes": "Shared Hyundai underpinnings. 1.0 T-GDI: HPFP and timing chain. 1.6 CRDi: EGR and DPF."
+    },
+    "mazda 3": {
+        "aliases": ["3", "mazda3"],
+        "years": range(2009, 2026),
+        "engines": ["1.5 skyactiv-g", "2.0 skyactiv-g", "1.6 skyactiv-d"],
+        "common_codes": ["P0300", "P0301", "P0302", "P0303", "P0171", "P0420", "P0401", "P0115", "P0505"],
+        "common_symptoms": ["misfire", "rough idle", "check engine light", "poor fuel economy", "loss of power", "hard start"],
+        "notes": "SkyActiv engines generally reliable. Petrol: check coils and plugs. 1.6 Diesel: EGR and DPF. P0300 can be fuel quality related."
+    },
+    "mazda 2": {
+        "aliases": ["2", "mazda2"],
+        "years": range(2007, 2026),
+        "engines": ["1.3 skyactiv-g", "1.5 skyactiv-g", "1.5 skyactiv-d"],
+        "common_codes": ["P0300", "P0301", "P0302", "P0171", "P0420", "P0401", "P0115"],
+        "common_symptoms": ["misfire", "rough idle", "check engine light", "poor fuel economy", "hard start"],
+        "notes": "1.3/1.5 SkyActiv-G: coils and plugs. 1.5 SkyActiv-D: EGR and DPF possible."
+    },
+    "suzuki swift": {
+        "aliases": ["swift"],
+        "years": range(2005, 2026),
+        "engines": ["1.0", "1.2", "1.4", "1.3 ddis", "1.6 ddis"],
+        "common_codes": ["P0300", "P0301", "P0302", "P0171", "P0420", "P0401", "P0115"],
+        "common_symptoms": ["misfire", "rough idle", "check engine light", "poor fuel economy", "hard start"],
+        "notes": "Generally reliable. Petrol: coils and plugs. 1.3/1.6 DDiS: EGR and DPF."
+    },
+    "volvo xc40": {
+        "aliases": ["xc40"],
+        "years": range(2017, 2026),
+        "engines": ["1.5 t3", "2.0 t4", "2.0 t5", "2.0 d3", "2.0 d4"],
+        "common_codes": ["P0300", "P0301", "P0302", "P0303", "P0304", "P0299", "P0401", "P0420", "P0010", "P0016", "P0115"],
+        "common_symptoms": ["misfire", "rough idle", "check engine light", "loss of power", "turbo whine", "hard start"],
+        "notes": "2.0 engines: timing belt/chain service critical. D3/D4: EGR and DPF. T4/T5: coil packs and wastegate rattle possible."
+    },
+    "volvo xc60": {
+        "aliases": ["xc60"],
+        "years": range(2008, 2026),
+        "engines": ["2.0 t4", "2.0 t5", "2.0 t6", "2.0 d3", "2.0 d4", "2.4 d5"],
+        "common_codes": ["P0300", "P0301", "P0302", "P0303", "P0304", "P0299", "P0401", "P0420", "P0010", "P0016"],
+        "common_symptoms": ["misfire", "rough idle", "check engine light", "loss of power", "turbo whine", "hard start"],
+        "notes": "2.0 Drive-E: timing belt/chain. D5: VVT solenoid and EGR. Petrol: coil packs and VANOS issues."
+    },
+    "land rover discovery sport": {
+        "aliases": ["discovery sport"],
+        "years": range(2014, 2026),
+        "engines": ["2.0 ed4", "2.0 si4", "2.0 td4", "2.2 sd4"],
+        "common_codes": ["P0300", "P0301", "P0302", "P0303", "P0171", "P0299", "P0401", "P0420", "P0016", "P0115"],
+        "common_symptoms": ["misfire", "rough idle", "check engine light", "loss of power", "turbo whine", "hard start"],
+        "notes": "2.0 SI4: timing chain and oil consumption. 2.0 TD4: EGR and DPF. P0016 cam correlation possible."
+    },
+    "jaguar e-pace": {
+        "aliases": ["e-pace"],
+        "years": range(2017, 2026),
+        "engines": ["2.0 ingenium diesel", "2.0 ingenium petrol"],
+        "common_codes": ["P0300", "P0301", "P0302", "P0303", "P0171", "P0299", "P0401", "P0420", "P0010", "P0016"],
+        "common_symptoms": ["misfire", "rough idle", "check engine light", "loss of power", "turbo whine"],
+        "notes": "Ingenium: timing belt/chain and oil dilution concerns. EGR and DPF on diesels. Check for known cam alignment faults."
+    },
+    "tesla model 3": {
+        "aliases": ["model 3"],
+        "years": range(2017, 2026),
+        "engines": ["standard range", "long range", "performance"],
+        "common_codes": ["U0100", "P0606", "P0562", "P0650"],
+        "common_symptoms": ["check engine light", "multiple warning lights", "no-start", "limp mode", "battery warning light"],
+        "notes": "EV-specific faults dominate. U0100 = lost CAN communication. P0562 = low system voltage. Standard generic OBD2 codes are rare; body and battery modules generate most codes."
+    },
+}
+
 MAINTENANCE_SCHEDULE = [
     ("Oil & Filter", "Every 12 months / 12,000 miles", "£60 - £120", "DIY if under vehicle easily"),
     ("Air Filter", "Every 24 months / 24,000 miles", "£20 - £50", "DIY"),
@@ -229,25 +568,60 @@ def save_config(cfg):
     CONFIG_PATH.write_text(json.dumps(cfg, indent=2))
 
 
-def diagnose_by_symptom(symptom_text):
+def _normalize_vehicle(make, model, year, engine):
+    make = (make or "").strip().lower()
+    model = (model or "").strip().lower()
+    year = (year or "").strip()
+    engine = (engine or "").strip().lower()
+    base = f"{make} {model}".strip()
+    matched_key = None
+    matched_year_ok = None
+    for key, profile in VEHICLE_PROFILES.items():
+        if base == key or any(model == alias or base == alias or f"{make} {alias}" == key for alias in profile.get("aliases", [])):
+            if not year:
+                matched_key = key
+                break
+            try:
+                yr = int(year)
+                if yr in profile.get("years", []):
+                    matched_key = key
+                    matched_year_ok = True
+                    break
+            except ValueError:
+                pass
+            if matched_key is None:
+                matched_key = key
+    return matched_key, VEHICLE_PROFILES.get(matched_key) if matched_key else None
+
+
+def diagnose_by_symptom(symptom_text, make=None, model=None, year=None, engine=None):
     symptom_lower = symptom_text.strip().lower()
-    matches = {}
+    profile_key, profile = _normalize_vehicle(make, model, year, engine)
+
+    symptom_matches = {}
     for code, data in OBD2_CODES.items():
         for sym in data["symptoms"]:
             if symptom_lower in sym.lower() or sym.lower() in symptom_lower:
-                if code not in matches:
-                    matches[code] = data
+                symptom_matches[code] = data
                 break
-    words = re.findall(r"[a-z]+", symptom_lower)
-    for word in words:
-        if len(word) > 2:
-            for code, data in OBD2_CODES.items():
-                for sym in data["symptoms"]:
-                    if word in sym.lower():
-                        if code not in matches:
-                            matches[code] = data
-                        break
-    return dict(sorted(matches.items(), key=lambda x: (x[1].get("priority", 9), x[0])))
+
+    if not symptom_matches:
+        words = re.findall(r"[a-z]+", symptom_lower)
+        for word in words:
+            if len(word) > 2:
+                for code, data in OBD2_CODES.items():
+                    for sym in data["symptoms"]:
+                        if word in sym.lower():
+                            symptom_matches[code] = data
+                            break
+
+    if profile:
+        vehicle_only = {code: data for code, data in symptom_matches.items() if code in profile.get("common_codes", [])}
+        if vehicle_only:
+            return dict(sorted(vehicle_only.items(), key=lambda x: (x[1].get("priority", 9), x[0])))
+        return {}
+
+    return dict(sorted(symptom_matches.items(), key=lambda x: (x[1].get("priority", 9), x[0])))
 
 
 def lookup_code(code):
@@ -313,15 +687,21 @@ class CarDiagnosisApp:
 
         row = ttk.Frame(self.step1)
         row.pack(fill="x", padx=8, pady=6)
-        ttk.Label(row, text="Make*").pack(side="left")
-        self.veh_make = ttk.Entry(row, width=18)
-        self.veh_make.pack(side="left", padx=(8, 0))
+
+        ttk.Label(row, text="Profile / Make*").pack(side="left")
+        profile_names = sorted(VEHICLE_PROFILES.keys())
+        self.veh_profile_combo = ttk.Combobox(row, values=profile_names, state="readonly", width=22)
+        self.veh_profile_combo.pack(side="left", padx=(8, 0))
+        self.veh_profile_combo.bind("<<ComboboxSelected>>", self._on_profile_selected)
+
         ttk.Label(row, text="Model*").pack(side="left", padx=(16, 0))
         self.veh_model = ttk.Entry(row, width=18)
         self.veh_model.pack(side="left", padx=(8, 0))
+
         ttk.Label(row, text="Year*").pack(side="left", padx=(16, 0))
         self.veh_year = ttk.Entry(row, width=10)
         self.veh_year.pack(side="left", padx=(8, 0))
+
         ttk.Label(row, text="Engine").pack(side="left", padx=(16, 0))
         self.veh_engine = ttk.Entry(row, width=14)
         self.veh_engine.pack(side="left", padx=(8, 0))
@@ -611,13 +991,41 @@ class CarDiagnosisApp:
         ttk.Button(btns, text="Refresh", command=self._refresh_mot_tax).pack(side="left", padx=8)
 
     def _load_vehicle(self):
-        for attr, key in [(self.veh_make, "make"), (self.veh_model, "model"), (self.veh_year, "year"),
+        for attr, key in [(self.veh_model, "model"), (self.veh_year, "year"),
                           (self.veh_engine, "engine"), (self.veh_mileage, "mileage"), (self.veh_vin, "vin")]:
             attr.delete(0, tk.END)
             attr.insert(0, self.config.get(key, ""))
 
+        make = (self.config.get("make") or "").strip().lower()
+        matched = ""
+        for key in sorted(VEHICLE_PROFILES.keys()):
+            if make == key or make in key or key in make:
+                matched = key
+                break
+        self.veh_profile_combo.set(matched)
+        self._apply_profile(matched)
+
+    def _apply_profile(self, profile_key):
+        profile = VEHICLE_PROFILES.get(profile_key, {})
+        if profile:
+            parts = profile_key.split(" ", 1)
+            default_model = parts[1] if len(parts) > 1 else profile_key
+            self.veh_model.delete(0, tk.END)
+            self.veh_model.insert(0, default_model)
+            if profile.get("years"):
+                self.veh_year.delete(0, tk.END)
+                self.veh_year.insert(0, str(profile["years"][0]))
+            if profile.get("engines"):
+                self.veh_engine.delete(0, tk.END)
+                self.veh_engine.insert(0, profile["engines"][0])
+
+    def _on_profile_selected(self, event=None):
+        profile_key = (self.veh_profile_combo.get() or "").strip()
+        self._apply_profile(profile_key)
+
     def _save_vehicle(self):
-        self.config["make"] = self.veh_make.get().strip()
+        profile_key = (self.veh_profile_combo.get() or "").strip()
+        self.config["make"] = profile_key
         self.config["model"] = self.veh_model.get().strip()
         self.config["year"] = self.veh_year.get().strip()
         self.config["engine"] = self.veh_engine.get().strip()
@@ -646,14 +1054,35 @@ class CarDiagnosisApp:
             messagebox.showwarning("No symptoms", "Please pick symptoms or type a description.")
             return
 
-        matches = diagnose_by_symptom(match_text)
+        profile_key, profile = _normalize_vehicle(
+            self.config.get("make"),
+            self.config.get("model"),
+            self.config.get("year"),
+            self.config.get("engine"),
+        )
+
+        matches = diagnose_by_symptom(
+            match_text,
+            make=self.config.get("make"),
+            model=self.config.get("model"),
+            year=self.config.get("year"),
+            engine=self.config.get("engine"),
+        )
         self.result_text.delete("1.0", tk.END)
         vehicle = self._vehicle_summary() or "Unknown vehicle"
         self.result_text.insert(tk.END, f"Vehicle: {vehicle}\n")
         self.result_text.insert(tk.END, f"Symptom(s): {custom or ', '.join(self.selected_symptoms)}\n\n")
 
+        if profile:
+            self.result_text.insert(tk.END, f"Vehicle profile: {profile_key.title()}\n")
+            self.result_text.insert(tk.END, f"Notes: {profile['notes']}\n\n")
+            self.result_text.insert(tk.END, "Showing vehicle-specific faults only for this profile.\n\n")
+        else:
+            self.result_text.insert(tk.END, "Vehicle not recognised in the profile database.\n")
+            self.result_text.insert(tk.END, "Fill in Make / Model / Year for a more specific diagnosis.\n\n")
+
         if not matches:
-            self.result_text.insert(tk.END, "No strong matches found in the database.\n")
+            self.result_text.insert(tk.END, "No strong matches found for this vehicle/symptom combination.\n")
             self.result_text.insert(tk.END, "Next steps:\n")
             self.result_text.insert(tk.END, "  - Use an OBD2 scanner to read exact fault codes\n")
             self.result_text.insert(tk.END, "  - Check for loose connections or recent work\n")
@@ -661,7 +1090,7 @@ class CarDiagnosisApp:
             log_diagnosis(vehicle=vehicle, symptom=custom or ", ".join(self.selected_symptoms), result="no_match")
             return
 
-        self.result_text.insert(tk.END, f"Found {len(matches)} possible code(s), sorted by likelihood:\n\n")
+        self.result_text.insert(tk.END, f"Found {len(matches)} possible code(s), sorted by vehicle relevance:\n\n")
         for code, data in matches.items():
             block = f"=== {code}: {data['description']} ===\n"
             block += f"Severity: {data['severity']} | Priority: {data.get('priority', '?')}\n"
