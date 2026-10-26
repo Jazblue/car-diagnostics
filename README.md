@@ -13,6 +13,10 @@ Windows desktop app for car fault diagnosis, OBD2 code lookup, service history, 
 - **History** — diagnosis log with CSV export
 - **Reports** — export or print diagnosis reports
 
+## Web Frontend
+
+This repository also contains a Next.js web application frontend in the `app/` directory, which provides a complementary web-based interface for some of the car diagnostic features.
+
 ## Requirements
 
 - Windows 10+
